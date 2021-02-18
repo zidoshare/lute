@@ -31,6 +31,11 @@ func Walk(n *Node, walker Walker) {
 	walk(n, walker)
 }
 
+// PostWalk 后续遍历树节点
+func PostWalk(n *Node, walker Walker) {
+	postWalk(n, walker)
+}
+
 func walk(n *Node, walker Walker) (ret WalkStatus) {
 	// 进入节点
 	ret = walker(n, true)
@@ -48,6 +53,20 @@ func walk(n *Node, walker Walker) (ret WalkStatus) {
 	}
 
 	// 离开节点
+	ret = walker(n, false)
+	return
+}
+
+func postWalk(n *Node, walker Walker) (ret WalkStatus) {
+	for c := n.FirstChild; nil != c; c = c.Next {
+		if ret = postWalk(c, walker); WalkStop == ret {
+			return WalkStop
+		}
+	}
+	ret = walker(n, true)
+	if ret == WalkStop {
+		return
+	}
 	ret = walker(n, false)
 	return
 }

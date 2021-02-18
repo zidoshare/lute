@@ -97,7 +97,7 @@ func (lute *Lute) MarkdownStr(name, markdown string) (html string) {
 func (lute *Lute) Format(name string, markdown []byte) (formatted []byte) {
 	tree := parse.Parse(name, markdown, lute.ParseOptions)
 	renderer := render.NewFormatRenderer(tree, lute.RenderOptions)
-	formatted = renderer.Render()
+	formatted = renderer.PostRender()
 	return
 }
 

@@ -637,7 +637,6 @@ func (r *FormatRenderer) renderTableHead(node *ast.Node, entering bool) ast.Walk
 func (r *FormatRenderer) renderTable(node *ast.Node, entering bool) ast.WalkStatus {
 	if entering {
 		// 遍历单元格算出最大宽度
-
 		var cells [][]*ast.Node
 		cells = append(cells, []*ast.Node{})
 
@@ -659,20 +658,6 @@ func (r *FormatRenderer) renderTable(node *ast.Node, entering bool) ast.WalkStat
 		for col := 0; col < len(cells[0]); col++ {
 			for row := 0; row < len(cells) && col < len(cells[row]); row++ {
 				cells[row][col].TableCellContentWidth = cells[row][col].TokenLen()
-				//自动添加空格会导致单元格宽度发生变化
-				if r.Options.AutoSpace {
-					ret := 0
-					//遍历字节点，将可能会多出来的空格计算出来
-					ast.Walk(cells[row][col], func(n *ast.Node, entering bool) ast.WalkStatus {
-						if !entering {
-							return ast.WalkContinue
-						}
-						//空格仅一个字节，可以直接计算长度
-						ret += len(r.Space(n.Tokens)) - len(n.Tokens)
-						return ast.WalkContinue
-					})
-					cells[row][col].TableCellContentWidth += ret
-				}
 				if maxWidth < cells[row][col].TableCellContentWidth {
 					maxWidth = cells[row][col].TableCellContentWidth
 				}

@@ -12,11 +12,12 @@ package render
 
 import (
 	"bytes"
-	"github.com/88250/lute/html"
 	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/88250/lute/html"
 
 	"github.com/88250/lute/ast"
 	"github.com/88250/lute/lex"
@@ -161,6 +162,34 @@ func (r *BaseRenderer) Render() (output []byte) {
 	r.Writer.Grow(4096)
 
 	ast.Walk(r.Tree.Root, func(n *ast.Node, entering bool) ast.WalkStatus {
+		extRender := r.ExtRendererFuncs[n.Type]
+		if nil != extRender {
+			output, status := extRender(n, entering)
+			r.WriteString(output)
+			return status
+		}
+
+		render := r.RendererFuncs[n.Type]
+		if nil == render {
+			if nil != r.DefaultRendererFunc {
+				return r.DefaultRendererFunc(n, entering)
+			}
+			return r.renderDefault(n, entering)
+		}
+		return render(n, entering)
+	})
+
+	output = r.Writer.Bytes()
+	return
+}
+
+// PostRender 后序遍历渲染。
+func (r *BaseRenderer) PostRender() (output []byte) {
+	r.LastOut = lex.ItemNewline
+	r.Writer = &bytes.Buffer{}
+	r.Writer.Grow(4096)
+
+	ast.PostWalk(r.Tree.Root, func(n *ast.Node, entering bool) ast.WalkStatus {
 		extRender := r.ExtRendererFuncs[n.Type]
 		if nil != extRender {
 			output, status := extRender(n, entering)
